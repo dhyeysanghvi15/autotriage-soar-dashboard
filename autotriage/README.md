@@ -57,6 +57,10 @@ python -m autotriage.cli.main tools alert-generator --seed 1337 --n 200 --out da
 - **Decisioning + explainability**: score contributions + routing rationale shown in the UI
 - **Ops discipline**: typed code, tests, CI, Docker, Prometheus metrics, Make targets
 
+## Known issues
+
+- `web/` dev dependency advisory: `cd web && npm audit` reports a moderate `esbuild` issue fixable only by `npm audit fix --force` (Vite major upgrade). `npm audit --omit=dev` reports 0 vulnerabilities, and the production Docker image does not ship Node tooling.
+
 ## Architecture (Mermaid)
 
 ```mermaid
