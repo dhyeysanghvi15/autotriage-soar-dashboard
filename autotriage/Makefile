@@ -4,6 +4,7 @@ PIP:=$(VENV)/bin/pip
 PYTHON:=$(VENV)/bin/python
 
 .PHONY: setup test lint web-build run demo docker-build docker-run
+.PHONY: smoke
 
 setup:
 	$(PY) -m venv $(VENV)
@@ -30,6 +31,9 @@ run:
 
 demo:
 	$(PYTHON) -m autotriage.cli.main demo
+
+smoke:
+	$(PYTHON) -m autotriage.tools.smoke --base-url http://127.0.0.1:8080
 
 docker-build:
 	docker build -t autotriage:latest -f docker/Dockerfile .

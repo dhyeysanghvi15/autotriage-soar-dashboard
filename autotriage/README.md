@@ -48,6 +48,14 @@ To reproduce the exact JSONL used by the demo (same seed + count):
 python -m autotriage.cli.main tools alert-generator --seed 1337 --n 200 --out data/sample_alerts/generated.jsonl
 ```
 
+## Smoke test
+
+With the service running:
+
+```bash
+make smoke
+```
+
 ## What this demonstrates
 
 - **SOAR pipeline**: staged processing with an **append-only event store** and replay experiments
