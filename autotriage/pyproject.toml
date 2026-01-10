@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling>=1.24.2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "autotriage"
+version = "0.1.0"
+description = "AutoTriage: alert enrichment + dedup + correlation + case router + dashboard (single-container SOAR demo)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.27",
+  "pydantic>=2.7",
+  "typer>=0.12",
+  "structlog>=24.1",
+  "python-dotenv>=1.0",
+  "PyYAML>=6.0",
+  "prometheus-client>=0.20",
+  "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "pytest-asyncio>=0.23",
+  "ruff>=0.6.0",
+  "mypy>=1.8",
+  "types-PyYAML>=6.0.12.20240808",
+]
+
+[project.scripts]
+autotriage = "autotriage.cli.main:app"
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_any_generics = true
+no_implicit_optional = true
+check_untyped_defs = true
+strict_equality = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["autotriage/tests"]
+

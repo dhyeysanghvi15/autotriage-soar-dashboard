@@ -1,0 +1,9 @@
+flowchart LR
+  A[Webhook] --> B[(alerts queue)]
+  B --> C[Worker pipeline]
+  C --> D[(events)]
+  C --> E[(cases)]
+  C --> F[(tickets)]
+  G[FastAPI] --> E
+  H[Dashboard SPA] --> G
+
