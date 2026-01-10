@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sqlite3
 from collections.abc import Generator
+from datetime import UTC, datetime
 from pathlib import Path
 
 from autotriage.config import load_effective_config
@@ -28,9 +29,31 @@ def db_dependency() -> Generator[sqlite3.Connection, None, None]:
 def init_db() -> None:
     db = get_db()
     try:
+        db.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+              id TEXT PRIMARY KEY,
+              applied_at TEXT NOT NULL
+            )
+            """
+        )
+        applied = {str(r["id"]) for r in db.execute("SELECT id FROM schema_migrations").fetchall()}
         migrations_dir = Path(__file__).resolve().parent / "migrations"
         for path in sorted(migrations_dir.glob("*.sql")):
-            db.executescript(path.read_text(encoding="utf-8"))
-        db.commit()
+            mid = path.name
+            if mid in applied:
+                continue
+            try:
+                db.executescript(path.read_text(encoding="utf-8"))
+            except sqlite3.OperationalError as e:
+                if mid == "007_deadletter_stage.sql" and "duplicate column name" in str(e).lower():
+                    pass
+                else:
+                    raise
+            db.execute(
+                "INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)",
+                (mid, datetime.now(tz=UTC).isoformat()),
+            )
+            db.commit()
     finally:
         db.close()

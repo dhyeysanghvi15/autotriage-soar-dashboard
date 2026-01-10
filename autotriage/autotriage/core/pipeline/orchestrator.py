@@ -29,23 +29,33 @@ def process_ingest(
     cfg = load_effective_config()
     events = EventsRepository(db)
     st = PipelineState(ingest_id=ingest_id, raw=raw_payload)
+    current_stage = "ingested"
     try:
+        current_stage = "normalize"
         st = stage_normalize(db, cfg, events, st)
+        current_stage = "fingerprint"
         st = stage_fingerprint(db, cfg, events, st)
+        current_stage = "dedup"
         st = stage_dedup(db, events, st)
+        current_stage = "correlate"
         st = stage_correlate(db, cfg, events, st)
+        current_stage = "enrich"
         st = stage_enrich(db, cfg, events, st)
+        current_stage = "score_decide_route"
         st = stage_score_decide_route(db, cfg, events, st)
+        current_stage = "finalize"
         st = stage_finalize(db, events, st)
         return st
     except Exception as e:  # noqa: BLE001
-        DeadletterRepository(db).upsert(ingest_id, repr(e), raw_payload)
+        DeadletterRepository(db).upsert(
+            ingest_id, stage=current_stage, error=repr(e), payload=raw_payload
+        )
         events.append(
             stage="failed",
             created_at=datetime.now(tz=UTC),
             ingest_id=ingest_id,
             case_id=None,
-            payload={"error": repr(e)},
+            payload={"error": repr(e), "failed_stage": current_stage},
         )
         db.execute(
             "UPDATE alerts SET status = 'failed', last_error = ? WHERE ingest_id = ?",
