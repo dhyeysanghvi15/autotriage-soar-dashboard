@@ -68,3 +68,14 @@ class CasesRepository:
             "ticket": dict(ticket) if ticket else None,
         }
 
+    def upsert_edge(
+        self, case_id: str, src_type: str, src_value: str, dst_type: str, dst_value: str, edge_type: str
+    ) -> None:
+        self._db.execute(
+            """
+            INSERT OR IGNORE INTO case_edges (case_id, src_type, src_value, dst_type, dst_value, edge_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            (case_id, src_type, src_value, dst_type, dst_value, edge_type),
+        )
+        self._db.commit()

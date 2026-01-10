@@ -29,4 +29,3 @@ class EventsRepository:
         )
         self._db.commit()
         return event_id
-
