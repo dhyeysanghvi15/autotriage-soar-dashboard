@@ -1,0 +1,4 @@
+{"vendor":"vendor_a","time":"2025-01-01T00:00:01Z","rule":"R-LOGIN-001","severity":7,"src_ip":"1.2.3.4","user":"alice","host":"workstation-1","title":"Suspicious login"}
+{"vendor":"vendor_a","time":"2025-01-01T00:00:30Z","rule":"R-LOGIN-001","severity":7,"src_ip":"1.2.3.4","user":"alice","host":"workstation-1","title":"Suspicious login"}
+{"source":"vendor_b","event":{"ts":1735689600,"name":"Impossible travel","severity":65,"rule_id":"B-TRAVEL-9","type":"auth"},"entities":{"user":"bob","ip":"5.6.7.8","host":"workstation-1"}}
+

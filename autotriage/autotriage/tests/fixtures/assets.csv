@@ -1,0 +1,4 @@
+host,criticality,owner,team,location
+workstation-1,low,it@corp.local,helpdesk,HQ
+dc01,critical,infra@corp.local,infra,DC
+

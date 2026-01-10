@@ -14,10 +14,16 @@ type CaseRow = {
 
 export default function Dashboard() {
   const [cases, setCases] = useState<CaseRow[]>([]);
+  const [overview, setOverview] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
+    apiGet<any>("/api/overview").then((r) => {
+      if (!alive) return;
+      if (!r.ok) return setError(r.error);
+      setOverview(r.data);
+    });
     apiGet<{ items: CaseRow[] }>("/api/cases?time_range=24h").then((r) => {
       if (!alive) return;
       if (!r.ok) return setError(r.error);
@@ -29,15 +35,16 @@ export default function Dashboard() {
   }, []);
 
   const stats = useMemo(() => {
-    const byDecision = new Map<string, number>();
-    for (const c of cases) byDecision.set(c.decision, (byDecision.get(c.decision) ?? 0) + 1);
+    const s = overview?.stats ?? {};
     return {
-      cases: cases.length,
-      autoClose: byDecision.get("AUTO_CLOSE") ?? 0,
-      tickets: (byDecision.get("CREATE_TICKET") ?? 0) + (byDecision.get("ESCALATE") ?? 0),
-      escalations: byDecision.get("ESCALATE") ?? 0
+      ingested: Number(s.ingested ?? 0),
+      deduped: Number(s.deduped ?? 0),
+      cases: Number(s.cases ?? cases.length),
+      autoClosed: Number(s.auto_closed ?? 0),
+      tickets: Number(s.tickets ?? 0),
+      errors: Number(s.errors ?? 0)
     };
-  }, [cases]);
+  }, [cases, overview]);
 
   const points = useMemo(() => {
     const byHour = new Map<string, number>();
@@ -54,10 +61,16 @@ export default function Dashboard() {
   return (
     <div className="grid">
       <div className="row">
+        <StatCard title="Ingested (24h)" value={stats.ingested} />
+        <StatCard title="Deduped (24h)" value={stats.deduped} />
         <StatCard title="Cases (24h)" value={stats.cases} />
-        <StatCard title="Tickets" value={stats.tickets} />
-        <StatCard title="Auto-Closed" value={stats.autoClose} />
-        <StatCard title="Escalations" value={stats.escalations} />
+        <StatCard title="Tickets (24h)" value={stats.tickets} />
+      </div>
+      <div className="row">
+        <StatCard title="Auto-Closed (24h)" value={stats.autoClosed} />
+        <StatCard title="Errors (24h)" value={stats.errors} />
+        <div />
+        <div />
       </div>
 
       <div className="panel">
@@ -69,4 +82,3 @@ export default function Dashboard() {
     </div>
   );
 }
-

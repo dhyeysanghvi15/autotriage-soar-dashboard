@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from autotriage.app.middleware.request_id import RequestIdMiddleware
-from autotriage.app.routes import cases, config, health, ingest, metrics, replay
+from autotriage.app.routes import cases, config, health, ingest, metrics, overview, replay
 
 
 def create_app(static_dir: Path | None = None) -> FastAPI:
@@ -18,6 +18,7 @@ def create_app(static_dir: Path | None = None) -> FastAPI:
     app.include_router(health.router)
     app.include_router(ingest.router)
     app.include_router(cases.router, prefix="/api")
+    app.include_router(overview.router, prefix="/api")
     app.include_router(replay.router, prefix="/api")
     app.include_router(config.router, prefix="/api")
     app.include_router(metrics.router)

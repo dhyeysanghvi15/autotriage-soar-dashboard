@@ -31,9 +31,7 @@ make run
 In a second terminal:
 
 ```bash
-curl -sS -X POST http://localhost:8080/webhook/alerts \
-  -H 'Content-Type: application/json' \
-  -d @data/sample_alerts/vendor_a_one.json
+python -m autotriage.cli.main ingest-file data/sample_alerts/vendor_a.jsonl
 ```
 
 ## What this demonstrates
@@ -95,4 +93,3 @@ Capture via your OS screenshot tool once running at `http://localhost:8080`.
 - **Deterministic enrichments**: no external calls required; demo runs offline
 - **Same-origin SPA**: one container, one URL, no CORS
 - **Recruiter-friendly**: disciplined structure, typed code, tests, CI, Docker, runbook
-

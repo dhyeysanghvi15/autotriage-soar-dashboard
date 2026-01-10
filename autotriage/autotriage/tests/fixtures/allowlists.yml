@@ -1,0 +1,9 @@
+ips:
+  - "10.0.0.10"
+domains:
+  - "example.com"
+users:
+  - "alice"
+hosts:
+  - "workstation-1"
+

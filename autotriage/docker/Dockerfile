@@ -1,9 +1,9 @@
 FROM node:20-alpine AS webbuild
 WORKDIR /app
-COPY web/package.json web/package-lock.json* web/ ./
-RUN npm install
-COPY web/ ./web/
+COPY web/package.json ./web/package.json
 WORKDIR /app/web
+RUN npm install
+COPY web/ ./
 RUN npm run build
 
 FROM python:3.11-slim AS runtime
