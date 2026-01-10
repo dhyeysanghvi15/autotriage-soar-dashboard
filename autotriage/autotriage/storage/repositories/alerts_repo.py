@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 
@@ -45,7 +45,7 @@ class AlertsRepository:
         return ingest_id, False
 
     def claim_next(self) -> sqlite3.Row | None:
-        row = self._db.execute(
+        row: sqlite3.Row | None = self._db.execute(
             """
             SELECT * FROM alerts
             WHERE status = 'ingested'
@@ -55,7 +55,7 @@ class AlertsRepository:
         ).fetchone()
         if row is None:
             return None
-        updated = datetime.utcnow().isoformat()
+        updated = datetime.now(tz=UTC).isoformat()
         cur = self._db.execute(
             """
             UPDATE alerts
@@ -71,7 +71,7 @@ class AlertsRepository:
         return row
 
     def mark_processed(self, ingest_id: str, status: str = "processed") -> None:
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(tz=UTC).isoformat()
         self._db.execute(
             "UPDATE alerts SET status = ?, processed_at = ?, updated_at = ?, last_error = NULL WHERE ingest_id = ?",
             (status, now, now, ingest_id),
@@ -79,7 +79,7 @@ class AlertsRepository:
         self._db.commit()
 
     def mark_failed(self, ingest_id: str, error: str) -> None:
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(tz=UTC).isoformat()
         self._db.execute(
             "UPDATE alerts SET status = 'failed', updated_at = ?, last_error = ? WHERE ingest_id = ?",
             (now, error, ingest_id),

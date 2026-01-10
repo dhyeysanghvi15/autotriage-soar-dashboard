@@ -3,7 +3,9 @@ from __future__ import annotations
 from typing import Any
 
 
-def recommended_actions_for_case(case: dict[str, Any], graph: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+def recommended_actions_for_case(
+    case: dict[str, Any], graph: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
     decision = str(case.get("decision") or "")
     severity = int(case.get("severity") or 0)
 
@@ -48,8 +50,11 @@ def recommended_actions_for_case(case: dict[str, Any], graph: dict[str, Any] | N
                 }
             )
     if not actions and decision == "AUTO_CLOSE":
-        actions.append({"title": "No action required (auto-closed)", "playbook": "/playbooks/README.md"})
+        actions.append(
+            {"title": "No action required (auto-closed)", "playbook": "/playbooks/README.md"}
+        )
     if not actions:
-        actions.append({"title": "Review evidence and confirm triage", "playbook": "/playbooks/README.md"})
+        actions.append(
+            {"title": "Review evidence and confirm triage", "playbook": "/playbooks/README.md"}
+        )
     return actions
-

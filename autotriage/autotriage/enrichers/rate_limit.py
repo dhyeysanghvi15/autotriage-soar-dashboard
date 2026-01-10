@@ -12,8 +12,13 @@ class TokenBucket:
     last_refill: float
 
     @classmethod
-    def per_minute(cls, capacity: int) -> "TokenBucket":
-        return cls(capacity=capacity, refill_per_second=capacity / 60.0, tokens=float(capacity), last_refill=time.time())
+    def per_minute(cls, capacity: int) -> TokenBucket:
+        return cls(
+            capacity=capacity,
+            refill_per_second=capacity / 60.0,
+            tokens=float(capacity),
+            last_refill=time.time(),
+        )
 
     def allow(self, cost: float = 1.0) -> bool:
         now = time.time()
@@ -24,4 +29,3 @@ class TokenBucket:
             self.tokens -= cost
             return True
         return False
-

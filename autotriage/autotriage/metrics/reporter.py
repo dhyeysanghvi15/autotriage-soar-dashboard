@@ -15,4 +15,3 @@ def quick_counts(db: sqlite3.Connection) -> dict[str, int]:
         "tickets_total": c("SELECT COUNT(*) FROM tickets"),
         "deadletter_total": c("SELECT COUNT(*) FROM deadletter"),
     }
-

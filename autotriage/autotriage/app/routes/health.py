@@ -21,4 +21,3 @@ def readyz() -> dict[str, str]:
     finally:
         db.close()
     return {"status": "ok", "db": "ok"}
-

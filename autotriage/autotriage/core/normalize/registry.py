@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from autotriage.core.models.alert import NormalizationResult
 from autotriage.core.normalize.vendor_a import normalize_vendor_a
@@ -25,12 +26,13 @@ def detect_vendor(payload: dict[str, Any]) -> str:
 
 
 def get_normalizer(vendor: str) -> Normalizer:
-    return {"vendor_a": normalize_vendor_a, "vendor_b": normalize_vendor_b, "vendor_c": normalize_vendor_c}.get(
-        vendor, normalize_vendor_a
-    )
+    return {
+        "vendor_a": normalize_vendor_a,
+        "vendor_b": normalize_vendor_b,
+        "vendor_c": normalize_vendor_c,
+    }.get(vendor, normalize_vendor_a)
 
 
 def normalize(payload: dict[str, Any]) -> NormalizationResult:
     vendor = detect_vendor(payload)
     return get_normalizer(vendor)(payload)
-

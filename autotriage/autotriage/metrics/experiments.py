@@ -4,16 +4,17 @@ import json
 import sqlite3
 import uuid
 from collections import Counter
-from datetime import datetime, timezone
-from typing import Any
+from datetime import UTC, datetime
+from typing import Any, cast
 
 from autotriage.config import load_effective_config
+from autotriage.core.decisioning.decide import decide, load_thresholds
 from autotriage.core.fingerprint.strategies import compute_fingerprint
 from autotriage.core.normalize.registry import normalize
+from autotriage.core.routing.router import route
 from autotriage.core.scoring.rule_parser import load_scoring_rules
 from autotriage.core.scoring.score_engine import score_alert
-from autotriage.core.decisioning.decide import decide, load_thresholds
-from autotriage.core.routing.router import route
+
 
 class ExperimentsService:
     def __init__(self, db: sqlite3.Connection) -> None:
@@ -22,10 +23,16 @@ class ExperimentsService:
     def run_replay(self, since: datetime, until: datetime, config_overrides: dict[str, Any]) -> str:
         cfg = load_effective_config()
         experiment_id = str(uuid.uuid4())
-        created_at = datetime.now(tz=timezone.utc).isoformat()
+        created_at = datetime.now(tz=UTC).isoformat()
         self._db.execute(
             "INSERT INTO experiments (experiment_id, created_at, since, until, overrides_json) VALUES (?, ?, ?, ?, ?)",
-            (experiment_id, created_at, since.isoformat(), until.isoformat(), json.dumps(config_overrides)),
+            (
+                experiment_id,
+                created_at,
+                since.isoformat(),
+                until.isoformat(),
+                json.dumps(config_overrides),
+            ),
         )
 
         rows = self._db.execute(
@@ -66,9 +73,18 @@ class ExperimentsService:
         thresholds = load_thresholds(cfg.rules_dir)
 
         # Allow overriding a few scoring weights (demo knob).
-        override_weights = ((config_overrides.get("scoring") or {}).get("weights") or {}) if isinstance(config_overrides.get("scoring"), dict) else {}
+        override_weights = (
+            ((config_overrides.get("scoring") or {}).get("weights") or {})
+            if isinstance(config_overrides.get("scoring"), dict)
+            else {}
+        )
         if override_weights:
-            scoring_rules = type(scoring_rules)(weights={**scoring_rules.weights, **{str(k): float(v) for k, v in override_weights.items()}})
+            scoring_rules = type(scoring_rules)(
+                weights={
+                    **scoring_rules.weights,
+                    **{str(k): float(v) for k, v in override_weights.items()},
+                }
+            )
 
         seen_fp: set[tuple[str, str]] = set()
         for r in rows:
@@ -91,10 +107,12 @@ class ExperimentsService:
                 """,
                 (r["ingest_id"],),
             ).fetchone()
-            enrichments = {}
+            enrichments: dict[str, Any] = {}
             if enriched_row is not None:
                 try:
-                    enrichments = json.loads(str(enriched_row["payload_json"])).get("enrichments") or {}
+                    enrichments = (
+                        json.loads(str(enriched_row["payload_json"])).get("enrichments") or {}
+                    )
                 except Exception:  # noqa: BLE001
                     enrichments = {}
 
@@ -109,12 +127,14 @@ class ExperimentsService:
 
         before_total = sum(before_decisions.values())
         after_total = sum(after_decisions.values())
-        before_tickets = before_decisions.get("CREATE_TICKET", 0) + before_decisions.get("ESCALATE", 0)
+        before_tickets = before_decisions.get("CREATE_TICKET", 0) + before_decisions.get(
+            "ESCALATE", 0
+        )
         after_tickets = after_decisions.get("CREATE_TICKET", 0) + after_decisions.get("ESCALATE", 0)
         before_auto_close = before_decisions.get("AUTO_CLOSE", 0)
         after_auto_close = after_decisions.get("AUTO_CLOSE", 0)
 
-        results = {
+        results: dict[str, Any] = {
             "before_decisions": dict(before_decisions),
             "after_decisions": dict(after_decisions),
             "before_queues": dict(before_queues),
@@ -131,12 +151,20 @@ class ExperimentsService:
                 "auto_close": after_auto_close,
                 "auto_close_rate_pct": pct(after_auto_close, after_total),
             },
-            "ticket_reduction_pct": pct(max(0, before_tickets - after_tickets), max(1, before_tickets)),
+            "ticket_reduction_pct": pct(
+                max(0, before_tickets - after_tickets), max(1, before_tickets)
+            ),
         }
 
+        before_block = cast(dict[str, Any], results["before"])
+        after_block = cast(dict[str, Any], results["after"])
         for metric_name, before_val, after_val in [
             ("tickets", float(before_tickets), float(after_tickets)),
-            ("auto_close_rate_pct", float(results["before"]["auto_close_rate_pct"]), float(results["after"]["auto_close_rate_pct"])),
+            (
+                "auto_close_rate_pct",
+                float(before_block["auto_close_rate_pct"]),
+                float(after_block["auto_close_rate_pct"]),
+            ),
             ("ticket_reduction_pct", 0.0, float(results["ticket_reduction_pct"])),
         ]:
             self._db.execute(
@@ -156,7 +184,9 @@ class ExperimentsService:
         return [dict(r) for r in cur.fetchall()]
 
     def get_experiment(self, experiment_id: str) -> dict[str, Any]:
-        cur = self._db.execute("SELECT * FROM experiments WHERE experiment_id = ?", (experiment_id,))
+        cur = self._db.execute(
+            "SELECT * FROM experiments WHERE experiment_id = ?", (experiment_id,)
+        )
         row = cur.fetchone()
         if row is None:
             return {"experiment_id": experiment_id, "missing": True}

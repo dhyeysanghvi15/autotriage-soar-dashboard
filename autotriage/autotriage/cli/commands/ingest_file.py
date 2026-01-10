@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import httpx
@@ -18,7 +18,9 @@ def ingest_file(path: Path, url: str = "http://127.0.0.1:8080/webhook/alerts") -
             httpx.post(
                 url,
                 json=payload,
-                headers={"Idempotency-Key": key, "X-Ingested-At": datetime.now(tz=timezone.utc).isoformat()},
+                headers={
+                    "Idempotency-Key": key,
+                    "X-Ingested-At": datetime.now(tz=UTC).isoformat(),
+                },
                 timeout=5,
             )
-

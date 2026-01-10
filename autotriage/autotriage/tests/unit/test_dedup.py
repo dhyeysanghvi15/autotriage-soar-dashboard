@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from autotriage.core.dedup.deduper import find_duplicate_of, record_fingerprint
 from autotriage.core.fingerprint.strategies import Fingerprint
@@ -21,7 +21,8 @@ def test_dedup_finds_existing() -> None:
         );
         """
     )
-    fp = Fingerprint(strategy="default", fp_hash="abc", window_start=datetime(2025, 1, 1, tzinfo=timezone.utc))
+    fp = Fingerprint(
+        strategy="default", fp_hash="abc", window_start=datetime(2025, 1, 1, tzinfo=UTC)
+    )
     record_fingerprint(db, "id-1", fp)
     assert find_duplicate_of(db, fp) == "id-1"
-

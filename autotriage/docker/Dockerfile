@@ -1,8 +1,9 @@
 FROM node:20-alpine AS webbuild
 WORKDIR /app
 COPY web/package.json ./web/package.json
+COPY web/package-lock.json ./web/package-lock.json
 WORKDIR /app/web
-RUN npm install
+RUN npm ci
 COPY web/ ./
 RUN npm run build
 

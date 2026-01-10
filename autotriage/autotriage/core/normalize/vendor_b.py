@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from autotriage.core.models.alert import CanonicalAlert, NormalizationResult
@@ -12,7 +12,7 @@ def normalize_vendor_b(payload: dict[str, Any]) -> NormalizationResult:
     # { "source":"vendor_b", "event":{"ts":1700000000,"name":"...","severity":55}, "entities":{"ip":"1.2.3.4"} }
     event = payload.get("event") or {}
     ts_epoch = int(event.get("ts") or 0)
-    ts = datetime.fromtimestamp(ts_epoch, tz=timezone.utc)
+    ts = datetime.fromtimestamp(ts_epoch, tz=UTC)
     entities: list[Entity] = []
     ents = payload.get("entities") or {}
     ip = ents.get("ip") or ents.get("src_ip")
@@ -37,4 +37,3 @@ def normalize_vendor_b(payload: dict[str, Any]) -> NormalizationResult:
         raw=payload,
     )
     return NormalizationResult(alert=alert)
-

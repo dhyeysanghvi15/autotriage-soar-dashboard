@@ -18,4 +18,3 @@ def get_config() -> dict[str, object]:
         "correlation_window_seconds": cfg.correlation_window_seconds,
         "enabled_enrichers": cfg.enabled_enrichers,
     }
-

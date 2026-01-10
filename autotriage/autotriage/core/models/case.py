@@ -42,4 +42,3 @@ class CaseDetail(BaseModel):
     scoring: ScoreExplanation
     routing_rationale: list[str]
     recommended_actions: list[dict[str, Any]]
-

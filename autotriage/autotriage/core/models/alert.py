@@ -24,4 +24,3 @@ class CanonicalAlert(BaseModel):
 class NormalizationResult(BaseModel):
     alert: CanonicalAlert
     warnings: list[str] = Field(default_factory=list)
-

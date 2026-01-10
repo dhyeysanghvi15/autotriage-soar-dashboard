@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from autotriage.core.models.alert import CanonicalAlert, NormalizationResult
@@ -29,7 +29,7 @@ def normalize_vendor_c(payload: dict[str, Any]) -> NormalizationResult:
     alert = CanonicalAlert(
         vendor="vendor_c",
         alert_type=str(finding.get("type") or "generic"),
-        ts=ts if ts.tzinfo else ts.replace(tzinfo=timezone.utc),
+        ts=ts if ts.tzinfo else ts.replace(tzinfo=UTC),
         title=str(finding.get("title") or "vendor_c finding"),
         rule_id=str(finding.get("rule_id") or "") or None,
         technique_id=str(finding.get("technique_id") or "") or None,
@@ -38,4 +38,3 @@ def normalize_vendor_c(payload: dict[str, Any]) -> NormalizationResult:
         raw=payload,
     )
     return NormalizationResult(alert=alert)
-

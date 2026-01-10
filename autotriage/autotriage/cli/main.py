@@ -5,12 +5,12 @@ from pathlib import Path
 
 import typer
 
-from autotriage.cli.commands.run_api import run_api
-from autotriage.cli.commands.run_worker import run_worker
-from autotriage.cli.commands.seed import seed
 from autotriage.cli.commands.ingest_file import ingest_file
 from autotriage.cli.commands.replay import replay
 from autotriage.cli.commands.report import report
+from autotriage.cli.commands.run_api import run_api
+from autotriage.cli.commands.run_worker import run_worker
+from autotriage.cli.commands.seed import seed
 from autotriage.config import load_effective_config
 from autotriage.logging import configure_logging
 from autotriage.tools.alert_generator import generate_alerts
@@ -29,6 +29,7 @@ def run(mode: str = "all", host: str = "127.0.0.1", port: int = 8080) -> None:
         asyncio.run(run_worker())
         return
     if mode == "all":
+
         async def _all() -> None:
             await asyncio.gather(
                 asyncio.to_thread(run_api, host, port),
@@ -59,7 +60,9 @@ def build_web(dist_dir: Path = Path("web/dist")) -> None:
 
 
 @app.command()
-def tools_alert_generator(out: Path = Path("data/sample_alerts/generated.jsonl"), n: int = 200) -> None:
+def tools_alert_generator(
+    out: Path = Path("data/sample_alerts/generated.jsonl"), n: int = 200
+) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text("\n".join(generate_alerts(n)) + "\n", encoding="utf-8")
     typer.echo(str(out))

@@ -31,7 +31,7 @@ jobs:
       - name: Web build
         working-directory: autotriage/web
         run: |
-          npm install
+          npm ci
           npm run build
       - name: Docker build
         working-directory: autotriage

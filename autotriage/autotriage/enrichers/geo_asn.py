@@ -28,4 +28,3 @@ class GeoAsnEnricher(BaseEnricher):
 
     def enrich_one(self, key: str) -> dict[str, Any] | None:
         return self._by_ip.get(key)
-

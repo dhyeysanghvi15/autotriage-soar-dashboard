@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from autotriage.core.correlate.heuristics import correlation_entities
@@ -46,7 +46,7 @@ def correlate_into_case(
     score: dict[str, Any],
     routing: dict[str, Any],
 ) -> str:
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     since = now - timedelta(seconds=correlation_window_seconds)
     ents = correlation_entities(alert.entities)
     pairs = [(e.type.value, e.value) for e in ents]
@@ -88,4 +88,3 @@ def correlate_into_case(
         )
     db.commit()
     return case_id
-

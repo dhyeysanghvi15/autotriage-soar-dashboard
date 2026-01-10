@@ -20,4 +20,3 @@ def correlation_entities(entities: Iterable[Entity]) -> list[Entity]:
         if e.type in keep and e.value:
             out.append(e)
     return out
-

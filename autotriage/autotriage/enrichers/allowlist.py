@@ -45,4 +45,3 @@ class AllowlistEnricher(BaseEnricher):
         if prefix == "host":
             return {"allowlisted": value in self._hosts}
         return None
-

@@ -16,4 +16,3 @@ class EnricherCache:
 
     def set(self, key: str, value: dict[str, Any], ttl_seconds: int) -> None:
         self._repo.set(self._enricher, key, value, ttl_seconds)
-

@@ -10,4 +10,3 @@ class MockSiemConnector:
     def ack_alert(self, ingest_id: str) -> None:
         self._db.execute("UPDATE alerts SET status = 'acked' WHERE ingest_id = ?", (ingest_id,))
         self._db.commit()
-

@@ -15,4 +15,3 @@ class RoutingDecision(BaseModel):
     decision: Decision
     queue: str
     rationale: list[str]
-

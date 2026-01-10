@@ -11,4 +11,3 @@ def route(rules_dir: Path, decision: Decision, enrichments: dict[str, Any]) -> R
     rules = load_routing_rules(rules_dir)
     queue, rationale = choose_queue(rules, decision=decision, enrichments=enrichments)
     return RoutingDecision(decision=decision, queue=queue, rationale=rationale)
-

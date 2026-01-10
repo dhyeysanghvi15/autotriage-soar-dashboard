@@ -25,4 +25,3 @@ class Edge(BaseModel):
     src: Entity
     dst: Entity
     type: str = Field(min_length=1, max_length=64)
-

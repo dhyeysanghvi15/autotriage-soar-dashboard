@@ -25,7 +25,7 @@ class RoutingRules:
 def load_routing_rules(rules_dir: Path) -> RoutingRules:
     data = yaml.safe_load((rules_dir / "routing.yml").read_text(encoding="utf-8")) or {}
     rules: list[RoutingRule] = []
-    for item in (data.get("rules") or []):
+    for item in data.get("rules") or []:
         rules.append(
             RoutingRule(
                 when=dict(item.get("when") or {}),
@@ -37,13 +37,12 @@ def load_routing_rules(rules_dir: Path) -> RoutingRules:
 
 
 def _match(when: dict[str, Any], attrs: dict[str, Any]) -> bool:
-    for k, v in when.items():
-        if attrs.get(k) != v:
-            return False
-    return True
+    return all(attrs.get(k) == v for k, v in when.items())
 
 
-def choose_queue(rules: RoutingRules, *, decision: Decision, enrichments: dict[str, Any]) -> tuple[str, list[str]]:
+def choose_queue(
+    rules: RoutingRules, *, decision: Decision, enrichments: dict[str, Any]
+) -> tuple[str, list[str]]:
     asset_crit = None
     for v in (enrichments.get("asset_context") or {}).values():
         data = (v or {}).get("data") or {}
@@ -55,4 +54,3 @@ def choose_queue(rules: RoutingRules, *, decision: Decision, enrichments: dict[s
         if _match(r.when, attrs):
             return r.queue, [r.rationale]
     return rules.default_queue, ["default_queue"]
-

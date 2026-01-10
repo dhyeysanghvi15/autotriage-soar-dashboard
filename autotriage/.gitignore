@@ -6,6 +6,7 @@ __pycache__/
 .ruff_cache/
 .python-version
 .env
+.venv/
 
 var/
 *.db
@@ -13,7 +14,7 @@ var/
 
 node_modules/
 web/dist/
-autotriage/app/static/
+web/dist-types/
+autotriage/autotriage/app/static/
 
 .DS_Store
-

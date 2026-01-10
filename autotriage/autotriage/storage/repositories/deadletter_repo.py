@@ -25,4 +25,3 @@ class DeadletterRepository:
             (ingest_id, now, now, error, json.dumps(payload)),
         )
         self._db.commit()
-

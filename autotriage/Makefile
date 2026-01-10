@@ -9,7 +9,7 @@ setup:
 	$(PY) -m venv $(VENV)
 	$(PIP) install -U pip
 	$(PIP) install -e ".[dev]"
-	cd web && npm install
+	cd web && npm ci
 
 test:
 	$(PYTHON) -m pytest -q

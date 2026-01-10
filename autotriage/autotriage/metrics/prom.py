@@ -16,5 +16,6 @@ PIPELINE_STAGE_SECONDS = Histogram(
 )
 
 INGEST_TOTAL = Counter("autotriage_ingest_total", "Total webhook ingests accepted")
-INGEST_IDEMPOTENT_HIT_TOTAL = Counter("autotriage_ingest_idempotent_hit_total", "Idempotency key hits")
-
+INGEST_IDEMPOTENT_HIT_TOTAL = Counter(
+    "autotriage_ingest_idempotent_hit_total", "Idempotency key hits"
+)

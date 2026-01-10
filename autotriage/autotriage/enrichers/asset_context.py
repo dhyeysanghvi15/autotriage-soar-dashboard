@@ -28,4 +28,3 @@ class AssetContextEnricher(BaseEnricher):
 
     def enrich_one(self, key: str) -> dict[str, Any] | None:
         return self._by_host.get(key)
-

@@ -65,7 +65,9 @@ def derive_signals(enrichments: dict[str, Any]) -> DerivedSignals:
     )
 
 
-def score_alert(alert: CanonicalAlert, enrichments: dict[str, Any], rules: ScoringRules) -> ScoreExplanation:
+def score_alert(
+    alert: CanonicalAlert, enrichments: dict[str, Any], rules: ScoringRules
+) -> ScoreExplanation:
     sig = derive_signals(enrichments)
     contributions: list[ScoreContribution] = []
 
@@ -80,13 +82,21 @@ def score_alert(alert: CanonicalAlert, enrichments: dict[str, Any], rules: Scori
     if sig.allowlisted:
         add("signal.allowlisted", value=1.0, reason="entity is allowlisted")
     if sig.asset_criticality:
-        add(f"signal.asset_criticality.{sig.asset_criticality}", value=1.0, reason="asset criticality")
+        add(
+            f"signal.asset_criticality.{sig.asset_criticality}",
+            value=1.0,
+            reason="asset criticality",
+        )
     if sig.has_bad_rep:
         add("signal.ip_rep.bad", value=1.0, reason="known bad IP reputation")
     elif sig.has_suspicious_rep:
         add("signal.ip_rep.suspicious", value=1.0, reason="suspicious IP reputation")
     if sig.has_phishing_domain:
-        add("signal.domain.phishing", value=1.0, reason="domain WHOIS category indicates phishing/malware")
+        add(
+            "signal.domain.phishing",
+            value=1.0,
+            reason="domain WHOIS category indicates phishing/malware",
+        )
 
     total_points = sum(c.points for c in contributions)
     severity = int(max(0, min(100, alert.severity + total_points)))
@@ -103,4 +113,3 @@ def score_alert(alert: CanonicalAlert, enrichments: dict[str, Any], rules: Scori
     confidence = float(max(0.0, min(1.0, confidence)))
 
     return make_explanation(severity=severity, confidence=confidence, contributions=contributions)
-

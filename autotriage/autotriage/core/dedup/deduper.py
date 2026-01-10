@@ -27,4 +27,3 @@ def record_fingerprint(db: sqlite3.Connection, ingest_id: str, fp: Fingerprint) 
         (ingest_id, fp.strategy, fp.fp_hash, fp.window_start.isoformat()),
     )
     db.commit()
-

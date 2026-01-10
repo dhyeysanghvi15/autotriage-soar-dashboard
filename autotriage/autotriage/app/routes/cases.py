@@ -1,20 +1,21 @@
 from __future__ import annotations
 
 import json
+import sqlite3
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from autotriage.storage.db import with_db
-from autotriage.storage.repositories.cases_repo import CasesRepository
 from autotriage.playbooks.catalog import recommended_actions_for_case
+from autotriage.storage.db import db_dependency
+from autotriage.storage.repositories.cases_repo import CasesRepository
 
 router = APIRouter()
 
 
 @router.get("/cases")
-@with_db
 def list_cases(
-    db,
+    db: Annotated[sqlite3.Connection, Depends(db_dependency)],
     time_range: str | None = Query(default=None),
     severity_min: int | None = Query(default=None),
     decision: str | None = Query(default=None),
@@ -29,8 +30,9 @@ def list_cases(
 
 
 @router.get("/cases/{case_id}")
-@with_db
-def get_case(db, case_id: str) -> dict[str, object]:
+def get_case(
+    case_id: str, db: Annotated[sqlite3.Connection, Depends(db_dependency)]
+) -> dict[str, object]:
     repo = CasesRepository(db)
     detail = repo.get_case_detail(case_id)
     case = detail.get("case") or {}
@@ -45,8 +47,8 @@ def get_case(db, case_id: str) -> dict[str, object]:
     except Exception:  # noqa: BLE001
         routing = {}
 
-    timeline = []
-    enrichments = {}
+    timeline: list[dict[str, Any]] = []
+    enrichments: dict[str, Any] = {}
     for ev in detail.get("timeline") or []:
         ev = dict(ev)
         try:

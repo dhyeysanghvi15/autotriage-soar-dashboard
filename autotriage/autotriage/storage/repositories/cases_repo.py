@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 
@@ -84,7 +84,13 @@ class CasesRepository:
         }
 
     def upsert_edge(
-        self, case_id: str, src_type: str, src_value: str, dst_type: str, dst_value: str, edge_type: str
+        self,
+        case_id: str,
+        src_type: str,
+        src_value: str,
+        dst_type: str,
+        dst_value: str,
+        edge_type: str,
     ) -> None:
         self._db.execute(
             """
@@ -98,7 +104,7 @@ class CasesRepository:
 
 def _parse_time_range(time_range: str) -> datetime | None:
     tr = time_range.strip().lower()
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     if tr.endswith("h"):
         return now - timedelta(hours=int(tr[:-1] or "0"))
     if tr.endswith("d"):

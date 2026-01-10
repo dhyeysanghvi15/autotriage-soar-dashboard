@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import datetime, timezone
-from typing import Any
+import sqlite3
+from datetime import UTC, datetime
+from typing import Annotated, Any
 
-from fastapi import APIRouter, Header, Request
-from fastapi import HTTPException
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 from autotriage.metrics.prom import INGEST_IDEMPOTENT_HIT_TOTAL, INGEST_TOTAL
+from autotriage.storage.db import db_dependency
 from autotriage.storage.repositories.alerts_repo import AlertsRepository
-from autotriage.storage.db import with_db
 
 router = APIRouter()
 
@@ -21,10 +21,9 @@ def _compute_idempotency_key(payload: dict[str, Any]) -> str:
 
 
 @router.post("/webhook/alerts", status_code=202)
-@with_db
 async def webhook_alerts(
     request: Request,
-    db,
+    db: Annotated[sqlite3.Connection, Depends(db_dependency)],
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> dict[str, str]:
     payload = await request.json()
@@ -33,7 +32,7 @@ async def webhook_alerts(
     key = idempotency_key or _compute_idempotency_key(payload)
     repo = AlertsRepository(db)
     ingest_id, hit = repo.insert_or_get_ingest(
-        idempotency_key=key, received_at=datetime.now(tz=timezone.utc), raw_payload=payload
+        idempotency_key=key, received_at=datetime.now(tz=UTC), raw_payload=payload
     )
     INGEST_TOTAL.inc()
     if hit:

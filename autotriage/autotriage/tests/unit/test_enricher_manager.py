@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
+
+from _pytest.monkeypatch import MonkeyPatch
 
 from autotriage.config import load_effective_config
 from autotriage.core.models.alert import CanonicalAlert
@@ -11,7 +13,7 @@ from autotriage.enrichers.manager import EnricherManager
 from autotriage.storage.db import init_db
 
 
-def test_enricher_manager_runs_offline(tmp_path: Path, monkeypatch) -> None:
+def test_enricher_manager_runs_offline(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     db_path = tmp_path / "t.db"
     monkeypatch.setenv("AUTOTRIAGE_DB_PATH", str(db_path))
     init_db()
@@ -21,7 +23,7 @@ def test_enricher_manager_runs_offline(tmp_path: Path, monkeypatch) -> None:
     alert = CanonicalAlert(
         vendor="vendor_a",
         alert_type="dns",
-        ts=datetime.now(tz=timezone.utc),
+        ts=datetime.now(tz=UTC),
         title="DNS query",
         severity=10,
         entities=[Entity(type=EntityType.domain, value="example.com")],

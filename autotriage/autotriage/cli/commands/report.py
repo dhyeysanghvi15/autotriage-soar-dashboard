@@ -14,4 +14,3 @@ def report() -> None:
         typer.echo(f"cases={cur.fetchone()[0]}")
     finally:
         db.close()
-

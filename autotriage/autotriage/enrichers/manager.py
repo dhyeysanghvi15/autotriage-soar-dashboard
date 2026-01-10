@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sqlite3
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -30,7 +31,7 @@ class _Breaker:
 
 
 class EnricherManager:
-    def __init__(self, *, db, data_dir: Path, enabled: list[str]) -> None:
+    def __init__(self, *, db: sqlite3.Connection, data_dir: Path, enabled: list[str]) -> None:
         self._db = db
         self._enrichers: list[BaseEnricher] = []
         self._buckets: dict[str, TokenBucket] = {}
@@ -47,7 +48,9 @@ class EnricherManager:
             enricher = available.get(name)
             if enricher is not None:
                 self._enrichers.append(enricher)
-                self._buckets[enricher.name] = TokenBucket.per_minute(enricher.rate_limit_per_minute)
+                self._buckets[enricher.name] = TokenBucket.per_minute(
+                    enricher.rate_limit_per_minute
+                )
                 self._breakers[enricher.name] = _Breaker()
 
     def enrich(self, alert: CanonicalAlert) -> dict[str, Any]:
@@ -83,7 +86,10 @@ class EnricherManager:
                     results[key] = {"status": "error", "error": repr(e)}
                     if breaker.failures >= enricher.breaker_failure_threshold:
                         breaker.open_until = time.time() + enricher.breaker_cooldown_seconds
-                        log.warning("enricher_circuit_open", enricher=enricher.name, open_until=breaker.open_until)
+                        log.warning(
+                            "enricher_circuit_open",
+                            enricher=enricher.name,
+                            open_until=breaker.open_until,
+                        )
             out[enricher.name] = results
         return out
-

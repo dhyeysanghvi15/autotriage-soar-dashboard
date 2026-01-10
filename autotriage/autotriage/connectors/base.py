@@ -8,4 +8,3 @@ class TicketingConnector(ABC):
     @abstractmethod
     def create_ticket(self, *, case_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         raise NotImplementedError
-

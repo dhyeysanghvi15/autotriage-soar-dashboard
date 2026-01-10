@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from datetime import datetime, timezone
 
 import structlog
 
@@ -39,4 +38,3 @@ async def worker_loop(poll_interval_s: float = 0.25) -> None:
             log.exception("worker_error")
         finally:
             db.close()
-

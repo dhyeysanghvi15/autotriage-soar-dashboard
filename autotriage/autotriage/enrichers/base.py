@@ -27,4 +27,3 @@ class BaseEnricher(ABC):
     @abstractmethod
     def enrich_one(self, key: str) -> dict[str, Any] | None:
         raise NotImplementedError
-

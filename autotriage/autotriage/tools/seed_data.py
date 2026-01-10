@@ -5,4 +5,3 @@ from autotriage.storage.db import init_db
 
 def seed_all() -> None:
     init_db()
-

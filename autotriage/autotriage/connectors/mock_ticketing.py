@@ -13,4 +13,3 @@ class MockTicketingConnector(TicketingConnector):
 
     def create_ticket(self, *, case_id: str, payload: dict[str, Any]) -> dict[str, Any]:
         return self._repo.upsert_ticket(case_id, payload)
-

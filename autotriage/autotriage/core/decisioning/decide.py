@@ -27,7 +27,9 @@ def load_thresholds(rules_dir: Path) -> Thresholds:
     )
 
 
-def decide(score: ScoreExplanation, enrichments: dict[str, Any], thresholds: Thresholds) -> Decision:
+def decide(
+    score: ScoreExplanation, enrichments: dict[str, Any], thresholds: Thresholds
+) -> Decision:
     allowlisted = False
     for v in (enrichments.get("allowlist") or {}).values():
         data = (v or {}).get("data") or {}
@@ -46,7 +48,11 @@ def decide(score: ScoreExplanation, enrichments: dict[str, Any], thresholds: Thr
         if str(data.get("rep") or "").lower() == "bad":
             bad_rep = True
 
-    if allowlisted and score.severity <= thresholds.auto_close_max_severity and score.confidence >= thresholds.auto_close_min_confidence:
+    if (
+        allowlisted
+        and score.severity <= thresholds.auto_close_max_severity
+        and score.confidence >= thresholds.auto_close_min_confidence
+    ):
         return Decision.auto_close
     if score.severity >= thresholds.escalate_min_severity or critical or bad_rep:
         return Decision.escalate
