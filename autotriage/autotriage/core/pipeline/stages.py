@@ -6,6 +6,8 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any
 
+import time
+
 from autotriage.config import AppConfig
 from autotriage.core.correlate.correlator import correlate_into_case
 from autotriage.core.dedup.deduper import find_duplicate_of, record_fingerprint
@@ -18,6 +20,7 @@ from autotriage.core.scoring.score_engine import score_alert
 from autotriage.core.decisioning.decide import decide, load_thresholds
 from autotriage.core.routing.router import route
 from autotriage.connectors.mock_ticketing import MockTicketingConnector
+from autotriage.metrics.prom import PIPELINE_STAGE_SECONDS, PIPELINE_STAGE_TOTAL
 from autotriage.storage.repositories.events_repo import EventsRepository
 
 
@@ -35,6 +38,7 @@ class PipelineState:
 
 
 def stage_normalize(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
+    t0 = time.perf_counter()
     res = normalize(st.raw)
     alert = res.alert.model_copy(update={"ingest_id": st.ingest_id})
     db.execute(
@@ -50,10 +54,13 @@ def stage_normalize(db: sqlite3.Connection, cfg: AppConfig, events: EventsReposi
         payload={"vendor": alert.vendor, "alert_type": alert.alert_type, "warnings": res.warnings},
     )
     st.alert = alert
+    PIPELINE_STAGE_TOTAL.labels("normalized").inc()
+    PIPELINE_STAGE_SECONDS.labels("normalized").observe(time.perf_counter() - t0)
     return st
 
 
 def stage_fingerprint(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
+    t0 = time.perf_counter()
     assert st.alert is not None
     fp = compute_fingerprint(st.alert, cfg.dedup_window_seconds)
     st.fingerprint_hash = fp.fp_hash
@@ -67,10 +74,13 @@ def stage_fingerprint(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepo
         case_id=None,
         payload={"fp_hash": fp.fp_hash, "window_start": fp.window_start.isoformat(), "duplicate_of": dup_of},
     )
+    PIPELINE_STAGE_TOTAL.labels("fingerprinted").inc()
+    PIPELINE_STAGE_SECONDS.labels("fingerprinted").observe(time.perf_counter() - t0)
     return st
 
 
 def stage_dedup(db: sqlite3.Connection, events: EventsRepository, st: PipelineState) -> PipelineState:
+    t0 = time.perf_counter()
     if st.duplicate_of is not None and st.duplicate_of != st.ingest_id:
         db.execute("UPDATE alerts SET status = 'deduped' WHERE ingest_id = ?", (st.ingest_id,))
         db.commit()
@@ -84,10 +94,13 @@ def stage_dedup(db: sqlite3.Connection, events: EventsRepository, st: PipelineSt
     else:
         db.execute("UPDATE alerts SET status = 'dedup_pass' WHERE ingest_id = ?", (st.ingest_id,))
         db.commit()
+    PIPELINE_STAGE_TOTAL.labels("deduped").inc()
+    PIPELINE_STAGE_SECONDS.labels("deduped").observe(time.perf_counter() - t0)
     return st
 
 
 def stage_correlate(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
+    t0 = time.perf_counter()
     assert st.alert is not None
     if st.duplicate_of is not None and st.duplicate_of != st.ingest_id:
         return st
@@ -113,10 +126,13 @@ def stage_correlate(db: sqlite3.Connection, cfg: AppConfig, events: EventsReposi
     )
     db.execute("UPDATE alerts SET status = 'correlated' WHERE ingest_id = ?", (st.ingest_id,))
     db.commit()
+    PIPELINE_STAGE_TOTAL.labels("correlated").inc()
+    PIPELINE_STAGE_SECONDS.labels("correlated").observe(time.perf_counter() - t0)
     return st
 
 
 def stage_enrich(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
+    t0 = time.perf_counter()
     assert st.alert is not None
     if st.duplicate_of is not None and st.duplicate_of != st.ingest_id:
         return st
@@ -128,14 +144,17 @@ def stage_enrich(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepositor
         created_at=datetime.now(tz=timezone.utc),
         ingest_id=st.ingest_id,
         case_id=st.case_id,
-        payload={"enrichers": list(enrichments.keys())},
+        payload={"enrichments": enrichments},
     )
+    PIPELINE_STAGE_TOTAL.labels("enriched").inc()
+    PIPELINE_STAGE_SECONDS.labels("enriched").observe(time.perf_counter() - t0)
     return st
 
 
 def stage_score_decide_route(
     db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState
 ) -> PipelineState:
+    t0 = time.perf_counter()
     if st.case_id is None or st.alert is None or st.enrichments is None:
         return st
     scoring_rules = load_scoring_rules(cfg.rules_dir)
@@ -201,10 +220,13 @@ def stage_score_decide_route(
             case_id=st.case_id,
             payload={"status": "auto_closed"},
         )
+    PIPELINE_STAGE_TOTAL.labels("scored_decided_routed").inc()
+    PIPELINE_STAGE_SECONDS.labels("scored_decided_routed").observe(time.perf_counter() - t0)
     return st
 
 
 def stage_finalize(db: sqlite3.Connection, events: EventsRepository, st: PipelineState) -> PipelineState:
+    t0 = time.perf_counter()
     db.execute("UPDATE alerts SET status = 'processed' WHERE ingest_id = ?", (st.ingest_id,))
     db.commit()
     events.append(
@@ -214,4 +236,6 @@ def stage_finalize(db: sqlite3.Connection, events: EventsRepository, st: Pipelin
         case_id=st.case_id,
         payload={"status": "processed"},
     )
+    PIPELINE_STAGE_TOTAL.labels("processed").inc()
+    PIPELINE_STAGE_SECONDS.labels("processed").observe(time.perf_counter() - t0)
     return st

@@ -18,13 +18,13 @@ class AlertsRepository:
         received_at: datetime,
         raw_payload: dict[str, Any],
         vendor: str | None = None,
-    ) -> str:
+    ) -> tuple[str, bool]:
         existing = self._db.execute(
             "SELECT ingest_id FROM alerts WHERE idempotency_key = ?",
             (idempotency_key,),
         ).fetchone()
         if existing is not None:
-            return str(existing["ingest_id"])
+            return str(existing["ingest_id"]), True
 
         ingest_id = str(uuid.uuid4())
         self._db.execute(
@@ -42,7 +42,7 @@ class AlertsRepository:
             ),
         )
         self._db.commit()
-        return ingest_id
+        return ingest_id, False
 
     def claim_next(self) -> sqlite3.Row | None:
         row = self._db.execute(

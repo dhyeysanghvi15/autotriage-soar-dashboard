@@ -21,9 +21,9 @@ lint:
 
 web-build:
 \tcd web && npm run build
-\trm -rf autotriage/app/static
-\tmkdir -p autotriage/app/static
-\tcp -R web/dist/* autotriage/app/static/
+\trm -rf autotriage/autotriage/app/static
+\tmkdir -p autotriage/autotriage/app/static
+\tcp -R web/dist/* autotriage/autotriage/app/static/
 
 run:
 \t$(PYTHON) -m autotriage.cli.main run --mode all
@@ -36,4 +36,3 @@ docker-build:
 
 docker-run:
 \tdocker run --rm -p 8080:8080 autotriage:latest
-

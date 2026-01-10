@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sqlite3
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 
@@ -18,6 +19,11 @@ class CasesRepository:
     ) -> list[dict[str, Any]]:
         where: list[str] = []
         params: list[Any] = []
+        if time_range:
+            since = _parse_time_range(time_range)
+            if since is not None:
+                where.append("created_at >= ?")
+                params.append(since.isoformat())
         if severity_min is not None:
             where.append("severity >= ?")
             params.append(severity_min)
@@ -28,8 +34,17 @@ class CasesRepository:
             where.append("queue = ?")
             params.append(queue)
         if q:
-            where.append("(summary LIKE ? OR case_id LIKE ?)")
-            params.extend([f"%{q}%", f"%{q}%"])
+            where.append(
+                """(
+                  summary LIKE ?
+                  OR case_id LIKE ?
+                  OR EXISTS (
+                    SELECT 1 FROM case_entities ce
+                    WHERE ce.case_id = cases.case_id AND ce.entity_value LIKE ?
+                  )
+                )"""
+            )
+            params.extend([f"%{q}%", f"%{q}%", f"%{q}%"])
         sql = "SELECT case_id, created_at, severity, decision, queue, summary FROM cases"
         if where:
             sql += " WHERE " + " AND ".join(where)
@@ -79,3 +94,15 @@ class CasesRepository:
             (case_id, src_type, src_value, dst_type, dst_value, edge_type),
         )
         self._db.commit()
+
+
+def _parse_time_range(time_range: str) -> datetime | None:
+    tr = time_range.strip().lower()
+    now = datetime.now(tz=timezone.utc)
+    if tr.endswith("h"):
+        return now - timedelta(hours=int(tr[:-1] or "0"))
+    if tr.endswith("d"):
+        return now - timedelta(days=int(tr[:-1] or "0"))
+    if tr.endswith("m"):
+        return now - timedelta(minutes=int(tr[:-1] or "0"))
+    return None

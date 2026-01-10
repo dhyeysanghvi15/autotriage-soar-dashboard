@@ -14,7 +14,6 @@ COPY pyproject.toml README.md ./
 COPY autotriage/ ./autotriage/
 COPY data/ ./data/
 RUN pip install -U pip && pip install -e ".[dev]" --no-cache-dir
-COPY --from=webbuild /app/web/dist/ ./autotriage/app/static/
+COPY --from=webbuild /app/web/dist/ ./autotriage/autotriage/app/static/
 EXPOSE 8080
 CMD ["python", "-m", "autotriage.cli.main", "run", "--mode", "all", "--host", "0.0.0.0", "--port", "8080"]
-

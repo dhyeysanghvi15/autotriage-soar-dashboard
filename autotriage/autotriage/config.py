@@ -22,12 +22,12 @@ class AppConfig:
 
 def load_effective_config() -> AppConfig:
     load_dotenv()
-    base = Path(".").resolve()
+    project_root = Path(__file__).resolve().parents[1]
     return AppConfig(
         version="0.1.0",
-        db_path=env_path("AUTOTRIAGE_DB_PATH", base / "var" / "autotriage.db"),
-        data_dir=env_path("AUTOTRIAGE_DATA_DIR", base / "data"),
-        rules_dir=env_path("AUTOTRIAGE_RULES_DIR", base / "autotriage" / "rules"),
+        db_path=env_path("AUTOTRIAGE_DB_PATH", project_root / "var" / "autotriage.db"),
+        data_dir=env_path("AUTOTRIAGE_DATA_DIR", project_root / "data"),
+        rules_dir=env_path("AUTOTRIAGE_RULES_DIR", project_root / "autotriage" / "rules"),
         dedup_window_seconds=env_int("AUTOTRIAGE_DEDUP_WINDOW_SECONDS", 600),
         correlation_window_seconds=env_int("AUTOTRIAGE_CORRELATION_WINDOW_SECONDS", 3600),
         enabled_enrichers=env_str_list(

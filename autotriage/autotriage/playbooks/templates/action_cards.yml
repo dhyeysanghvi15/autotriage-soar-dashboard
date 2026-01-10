@@ -1,0 +1,11 @@
+cards:
+  - id: isolate_host
+    title: "Isolate Host"
+    link: "/playbooks/actions/isolate_host.md"
+  - id: disable_user
+    title: "Disable User"
+    link: "/playbooks/actions/disable_user.md"
+  - id: block_ip
+    title: "Block IP"
+    link: "/playbooks/actions/block_ip.md"
+
