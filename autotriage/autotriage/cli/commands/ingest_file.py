@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 from datetime import UTC, datetime
 from pathlib import Path
@@ -14,7 +15,8 @@ def ingest_file(path: Path, url: str = "http://127.0.0.1:8080/webhook/alerts") -
             if not line:
                 continue
             payload = json.loads(line)
-            key = f"file-{path.name}-{hash(line)}"
+            digest = hashlib.sha256(line.encode("utf-8")).hexdigest()
+            key = f"file:{path.name}:{digest}"
             httpx.post(
                 url,
                 json=payload,

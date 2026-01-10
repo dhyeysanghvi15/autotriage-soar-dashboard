@@ -34,6 +34,20 @@ In a second terminal:
 python -m autotriage.cli.main ingest-file data/sample_alerts/vendor_a.jsonl
 ```
 
+## Reproducible demo output
+
+The demo is deterministic by default: it uses a fixed seed (`1337`) for the alert generator.
+
+```bash
+make demo
+```
+
+To reproduce the exact JSONL used by the demo (same seed + count):
+
+```bash
+python -m autotriage.cli.main tools alert-generator --seed 1337 --n 200 --out data/sample_alerts/generated.jsonl
+```
+
 ## What this demonstrates
 
 - **SOAR pipeline**: staged processing with an **append-only event store** and replay experiments
