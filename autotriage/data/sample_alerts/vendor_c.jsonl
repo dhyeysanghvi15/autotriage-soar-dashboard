@@ -1,0 +1,3 @@
+{"vendor":"vendor_c","observed_at":"2025-01-01T00:03:00Z","finding":{"title":"Execution of unsigned binary","priority":"high","type":"edr","rule_id":"C-EDR-7"},"principal":{"user":"carol","host":"app01"},"ioc":{"ip":"1.2.3.4"}}
+{"vendor":"vendor_c","observed_at":"2025-01-01T00:04:00Z","finding":{"title":"Known malware domain contacted","priority":"critical","type":"edr","rule_id":"C-EDR-9"},"principal":{"user":"carol","host":"app01"},"ioc":{"domain":"evil.example"}}
+

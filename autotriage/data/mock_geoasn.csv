@@ -1,0 +1,5 @@
+ip,country,asn,org
+1.2.3.4,US,64500,MockNet
+5.6.7.8,NL,64510,MockHosting
+10.0.0.10,US,64512,Corp
+

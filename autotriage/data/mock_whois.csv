@@ -1,0 +1,4 @@
+domain,registrar,created_at,category
+evil.example,MockRegistrar,2020-01-01,phishing
+example.com,MockRegistrar,2000-01-01,benign
+

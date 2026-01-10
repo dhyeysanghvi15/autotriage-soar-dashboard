@@ -1,0 +1,3 @@
+{"source":"vendor_b","event":{"ts":1735689600,"name":"Impossible travel","severity":65,"rule_id":"B-TRAVEL-9","type":"auth"},"entities":{"user":"bob","ip":"5.6.7.8","host":"workstation-1"}}
+{"source":"vendor_b","event":{"ts":1735689660,"name":"Multiple failed logins","severity":45,"rule_id":"B-AUTH-2","type":"auth"},"entities":{"user":"bob","ip":"5.6.7.8","host":"workstation-1"}}
+

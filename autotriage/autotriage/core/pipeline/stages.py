@@ -12,6 +12,7 @@ from autotriage.core.dedup.deduper import find_duplicate_of, record_fingerprint
 from autotriage.core.fingerprint.strategies import compute_fingerprint
 from autotriage.core.models.alert import CanonicalAlert
 from autotriage.core.normalize.registry import normalize
+from autotriage.enrichers.manager import EnricherManager
 from autotriage.storage.repositories.events_repo import EventsRepository
 
 
@@ -23,6 +24,7 @@ class PipelineState:
     fingerprint_hash: str | None = None
     duplicate_of: str | None = None
     case_id: str | None = None
+    enrichments: dict[str, Any] | None = None
 
 
 def stage_normalize(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
@@ -107,6 +109,23 @@ def stage_correlate(db: sqlite3.Connection, cfg: AppConfig, events: EventsReposi
     return st
 
 
+def stage_enrich(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
+    assert st.alert is not None
+    if st.duplicate_of is not None and st.duplicate_of != st.ingest_id:
+        return st
+    mgr = EnricherManager(db=db, data_dir=cfg.data_dir, enabled=cfg.enabled_enrichers)
+    enrichments = mgr.enrich(st.alert)
+    st.enrichments = enrichments
+    events.append(
+        stage="enriched",
+        created_at=datetime.now(tz=timezone.utc),
+        ingest_id=st.ingest_id,
+        case_id=st.case_id,
+        payload={"enrichers": list(enrichments.keys())},
+    )
+    return st
+
+
 def stage_finalize(db: sqlite3.Connection, events: EventsRepository, st: PipelineState) -> PipelineState:
     db.execute("UPDATE alerts SET status = 'processed' WHERE ingest_id = ?", (st.ingest_id,))
     db.commit()
@@ -118,4 +137,3 @@ def stage_finalize(db: sqlite3.Connection, events: EventsRepository, st: Pipelin
         payload={"status": "processed"},
     )
     return st
-

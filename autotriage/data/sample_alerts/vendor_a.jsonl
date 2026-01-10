@@ -1,0 +1,4 @@
+{"vendor":"vendor_a","time":"2025-01-01T00:00:01Z","rule":"R-LOGIN-001","severity":7,"src_ip":"1.2.3.4","user":"alice","host":"workstation-1","title":"Suspicious login"}
+{"vendor":"vendor_a","time":"2025-01-01T00:01:05Z","rule":"R-LOGIN-001","severity":7,"src_ip":"1.2.3.4","user":"alice","host":"workstation-1","title":"Suspicious login"}
+{"vendor":"vendor_a","time":"2025-01-01T00:02:10Z","rule":"R-DNS-404","severity":5,"domain":"evil.example","host":"app01","title":"DNS query to suspicious domain"}
+
