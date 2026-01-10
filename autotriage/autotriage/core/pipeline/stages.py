@@ -13,6 +13,11 @@ from autotriage.core.fingerprint.strategies import compute_fingerprint
 from autotriage.core.models.alert import CanonicalAlert
 from autotriage.core.normalize.registry import normalize
 from autotriage.enrichers.manager import EnricherManager
+from autotriage.core.scoring.rule_parser import load_scoring_rules
+from autotriage.core.scoring.score_engine import score_alert
+from autotriage.core.decisioning.decide import decide, load_thresholds
+from autotriage.core.routing.router import route
+from autotriage.connectors.mock_ticketing import MockTicketingConnector
 from autotriage.storage.repositories.events_repo import EventsRepository
 
 
@@ -25,6 +30,8 @@ class PipelineState:
     duplicate_of: str | None = None
     case_id: str | None = None
     enrichments: dict[str, Any] | None = None
+    score: dict[str, Any] | None = None
+    routing: dict[str, Any] | None = None
 
 
 def stage_normalize(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState) -> PipelineState:
@@ -123,6 +130,77 @@ def stage_enrich(db: sqlite3.Connection, cfg: AppConfig, events: EventsRepositor
         case_id=st.case_id,
         payload={"enrichers": list(enrichments.keys())},
     )
+    return st
+
+
+def stage_score_decide_route(
+    db: sqlite3.Connection, cfg: AppConfig, events: EventsRepository, st: PipelineState
+) -> PipelineState:
+    if st.case_id is None or st.alert is None or st.enrichments is None:
+        return st
+    scoring_rules = load_scoring_rules(cfg.rules_dir)
+    score = score_alert(st.alert, st.enrichments, scoring_rules)
+    thresholds_cfg = load_thresholds(cfg.rules_dir)
+    decision = decide(score, st.enrichments, thresholds_cfg)
+    routing = route(cfg.rules_dir, decision, st.enrichments)
+
+    st.score = score.model_dump()
+    st.routing = routing.model_dump()
+    db.execute(
+        """
+        UPDATE cases
+        SET severity = ?, confidence = ?, decision = ?, queue = ?, score_json = ?, routing_json = ?
+        WHERE case_id = ?
+        """,
+        (
+            score.severity,
+            score.confidence,
+            str(decision),
+            routing.queue,
+            json.dumps(st.score),
+            json.dumps(st.routing),
+            st.case_id,
+        ),
+    )
+    db.commit()
+    events.append(
+        stage="scored",
+        created_at=datetime.now(tz=timezone.utc),
+        ingest_id=st.ingest_id,
+        case_id=st.case_id,
+        payload={"severity": score.severity, "confidence": score.confidence},
+    )
+    events.append(
+        stage="decided",
+        created_at=datetime.now(tz=timezone.utc),
+        ingest_id=st.ingest_id,
+        case_id=st.case_id,
+        payload={"decision": str(decision)},
+    )
+    events.append(
+        stage="routed",
+        created_at=datetime.now(tz=timezone.utc),
+        ingest_id=st.ingest_id,
+        case_id=st.case_id,
+        payload={"queue": routing.queue, "rationale": routing.rationale},
+    )
+    if str(decision) in {"CREATE_TICKET", "ESCALATE"}:
+        ticket = MockTicketingConnector(db).create_ticket(case_id=st.case_id, payload={"case_id": st.case_id})
+        events.append(
+            stage="ticketed",
+            created_at=datetime.now(tz=timezone.utc),
+            ingest_id=st.ingest_id,
+            case_id=st.case_id,
+            payload={"ticket_id": ticket.get("ticket_id"), "url": ticket.get("url")},
+        )
+    else:
+        events.append(
+            stage="closed",
+            created_at=datetime.now(tz=timezone.utc),
+            ingest_id=st.ingest_id,
+            case_id=st.case_id,
+            payload={"status": "auto_closed"},
+        )
     return st
 
 

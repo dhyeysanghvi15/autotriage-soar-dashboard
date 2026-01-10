@@ -12,6 +12,7 @@ from autotriage.core.pipeline.stages import (
     stage_correlate,
     stage_dedup,
     stage_enrich,
+    stage_score_decide_route,
     stage_finalize,
     stage_fingerprint,
     stage_normalize,
@@ -32,6 +33,7 @@ def process_ingest(db: sqlite3.Connection, ingest_id: str, raw_payload: dict[str
         st = stage_dedup(db, events, st)
         st = stage_correlate(db, cfg, events, st)
         st = stage_enrich(db, cfg, events, st)
+        st = stage_score_decide_route(db, cfg, events, st)
         st = stage_finalize(db, events, st)
         return st
     except Exception as e:  # noqa: BLE001

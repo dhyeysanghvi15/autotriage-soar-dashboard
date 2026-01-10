@@ -1,0 +1,5 @@
+decisioning:
+  auto_close_max_severity: 25
+  auto_close_min_confidence: 0.8
+  escalate_min_severity: 85
+

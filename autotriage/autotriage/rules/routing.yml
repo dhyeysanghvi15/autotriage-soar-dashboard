@@ -1,0 +1,11 @@
+default_queue: "soc-triage"
+rules:
+  - when:
+      decision: "ESCALATE"
+    queue: "soc-l3"
+    rationale: "high_risk_escalation"
+  - when:
+      asset_criticality: "critical"
+    queue: "incident-response"
+    rationale: "critical_asset"
+

@@ -1,0 +1,9 @@
+default:
+  title: "{{case.summary}}"
+  description: |
+    AutoTriage created this ticket based on scoring + routing decision.
+  fields:
+    severity: "{{case.severity}}"
+    decision: "{{case.decision}}"
+    queue: "{{case.queue}}"
+
