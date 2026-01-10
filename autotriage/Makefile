@@ -6,33 +6,33 @@ PYTHON:=$(VENV)/bin/python
 .PHONY: setup test lint web-build run demo docker-build docker-run
 
 setup:
-\t$(PY) -m venv $(VENV)
-\t$(PIP) install -U pip
-\t$(PIP) install -e ".[dev]"
-\tcd web && npm install
+	$(PY) -m venv $(VENV)
+	$(PIP) install -U pip
+	$(PIP) install -e ".[dev]"
+	cd web && npm install
 
 test:
-\t$(PYTHON) -m pytest -q
+	$(PYTHON) -m pytest -q
 
 lint:
-\t$(PYTHON) -m ruff check .
-\t$(PYTHON) -m ruff format --check .
-\t$(PYTHON) -m mypy autotriage
+	$(PYTHON) -m ruff check .
+	$(PYTHON) -m ruff format --check .
+	$(PYTHON) -m mypy autotriage
 
 web-build:
-\tcd web && npm run build
-\trm -rf autotriage/autotriage/app/static
-\tmkdir -p autotriage/autotriage/app/static
-\tcp -R web/dist/* autotriage/autotriage/app/static/
+	cd web && npm run build
+	rm -rf autotriage/autotriage/app/static
+	mkdir -p autotriage/autotriage/app/static
+	cp -R web/dist/* autotriage/autotriage/app/static/
 
 run:
-\t$(PYTHON) -m autotriage.cli.main run --mode all
+	$(PYTHON) -m autotriage.cli.main run --mode all
 
 demo:
-\t$(PYTHON) -m autotriage.cli.main demo
+	$(PYTHON) -m autotriage.cli.main demo
 
 docker-build:
-\tdocker build -t autotriage:latest -f docker/Dockerfile .
+	docker build -t autotriage:latest -f docker/Dockerfile .
 
 docker-run:
-\tdocker run --rm -p 8080:8080 autotriage:latest
+	docker run --rm -p 8080:8080 autotriage:latest
