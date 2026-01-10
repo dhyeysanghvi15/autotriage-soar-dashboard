@@ -23,6 +23,10 @@ def create_app(static_dir: Path | None = None) -> FastAPI:
     app.include_router(config.router, prefix="/api")
     app.include_router(metrics.router)
 
+    playbooks_root = Path(__file__).resolve().parents[1] / "playbooks"
+    if playbooks_root.exists():
+        app.mount("/playbooks", StaticFiles(directory=str(playbooks_root)), name="playbooks")
+
     static_root = static_dir or (Path(__file__).resolve().parent / "static")
     if static_root.exists():
         assets = static_root / "assets"
