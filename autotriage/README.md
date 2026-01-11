@@ -28,6 +28,8 @@ make web-build
 make run
 ```
 
+Requirements: Python 3.11+, Node 20+.
+
 In a second terminal:
 
 ```bash
@@ -54,6 +56,17 @@ With the service running:
 
 ```bash
 make smoke
+```
+
+## Testing
+
+```bash
+make lint
+make test
+make web-build
+make e2e   # first run: cd web && npx playwright install chromium
+make perf
+make verify
 ```
 
 ## What this demonstrates

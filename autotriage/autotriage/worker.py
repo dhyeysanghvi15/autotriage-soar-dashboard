@@ -16,7 +16,6 @@ async def worker_loop(poll_interval_s: float = 0.25) -> None:
     init_db()
     log.info("worker_started")
     while True:
-        await asyncio.sleep(poll_interval_s)
         db = get_db()
         try:
             repo = AlertsRepository(db)
@@ -38,3 +37,5 @@ async def worker_loop(poll_interval_s: float = 0.25) -> None:
             log.exception("worker_error")
         finally:
             db.close()
+        if row is None:
+            await asyncio.sleep(poll_interval_s)

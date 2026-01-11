@@ -10,6 +10,15 @@
 - `GET /healthz`, `GET /readyz`
 - Prometheus metrics: `GET /metrics`
 
+## Testing
+
+- `make lint`
+- `make test`
+- `make web-build`
+- `make e2e` (first run: `cd web && npx playwright install chromium`)
+- `make perf`
+- `make verify`
+
 ## Common issues
 
 - If the dashboard shows no data, run `make demo` to seed and ingest synthetic alerts.
