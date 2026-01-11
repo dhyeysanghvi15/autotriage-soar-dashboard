@@ -37,6 +37,7 @@ python -m autotriage.cli.main ingest-file data/sample_alerts/vendor_a.jsonl
 ## Demo recipe (deterministic)
 
 - `make demo` seeds the DB, generates 200 alerts (`demo_seed=1337`), ingests them, and prints the dashboard URL.
+- The demo keeps the API + worker running so you can explore; stop with `Ctrl+C`.
 - Reproduce exactly with `python -m autotriage.cli.main tools alert-generator --seed 1337 --n 200 --out data/sample_alerts/generated.jsonl`.
 - The alert generator is deterministic (seed + vendor shapes) so you can replay demos or experiments reliably.
 

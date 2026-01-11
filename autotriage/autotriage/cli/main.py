@@ -87,35 +87,46 @@ def demo(
     async def _demo() -> None:
         seed()
 
-        api_task = asyncio.to_thread(run_api, host, port)
+        api_task = asyncio.create_task(asyncio.to_thread(run_api, host, port))
         worker_task = asyncio.create_task(run_worker())
 
-        async with httpx.AsyncClient(timeout=2) as client:
-            for _ in range(50):
-                try:
-                    r = await client.get(f"http://{host}:{port}/readyz")
-                    if r.status_code == 200:
-                        break
-                except Exception:  # noqa: BLE001
-                    pass
-                await asyncio.sleep(0.1)
-
-        out = Path("data/sample_alerts/generated.jsonl")
-        out.write_text("\n".join(generate_alerts(n, seed=demo_seed)) + "\n", encoding="utf-8")
-        await asyncio.to_thread(ingest_file, out, f"http://{host}:{port}/webhook/alerts")
-
-        db = get_db()
         try:
-            counts = quick_counts(db)
-        finally:
-            db.close()
+            ready = False
+            async with httpx.AsyncClient(timeout=2) as client:
+                for _ in range(50):
+                    try:
+                        r = await client.get(f"http://{host}:{port}/readyz")
+                        if r.status_code == 200:
+                            ready = True
+                            break
+                    except Exception:  # noqa: BLE001
+                        pass
+                    await asyncio.sleep(0.1)
+            if not ready:
+                raise RuntimeError(f"API did not become ready at http://{host}:{port}/readyz")
 
-        typer.echo(f"demo_seed={demo_seed} n={n}")
-        typer.echo(
-            f"demo_ingested alerts={counts['alerts_total']} cases={counts['cases_total']} tickets={counts['tickets_total']}"
-        )
-        typer.echo(f"Open http://{host}:{port}")
-        await asyncio.gather(api_task, worker_task)
+            out = Path("data/sample_alerts/generated.jsonl")
+            out.write_text("\n".join(generate_alerts(n, seed=demo_seed)) + "\n", encoding="utf-8")
+            await asyncio.to_thread(ingest_file, out, f"http://{host}:{port}/webhook/alerts")
+
+            db = get_db()
+            try:
+                counts = quick_counts(db)
+            finally:
+                db.close()
+
+            typer.echo(f"demo_seed={demo_seed} n={n}")
+            typer.echo(
+                f"demo_ingested alerts={counts['alerts_total']} cases={counts['cases_total']} tickets={counts['tickets_total']}"
+            )
+            typer.echo(f"Open http://{host}:{port}")
+            await asyncio.gather(api_task, worker_task)
+        finally:
+            if not api_task.done():
+                api_task.cancel()
+            if not worker_task.done():
+                worker_task.cancel()
+            await asyncio.gather(api_task, worker_task, return_exceptions=True)
 
     asyncio.run(_demo())
 

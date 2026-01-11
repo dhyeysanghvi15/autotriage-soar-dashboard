@@ -17,17 +17,17 @@ async def worker_loop(poll_interval_s: float = 0.25) -> None:
     log.info("worker_started")
     while True:
         db = get_db()
+        row = None
         try:
             repo = AlertsRepository(db)
             row = repo.claim_next()
-            if row is None:
-                continue
-            ingest_id = str(row["ingest_id"])
-            raw = json.loads(str(row["raw_json"]))
-            log.info("worker_processing", ingest_id=ingest_id)
-            process_ingest(db, ingest_id, raw)
-            repo.mark_processed(ingest_id)
-            log.info("worker_processed", ingest_id=ingest_id)
+            if row is not None:
+                ingest_id = str(row["ingest_id"])
+                raw = json.loads(str(row["raw_json"]))
+                log.info("worker_processing", ingest_id=ingest_id)
+                process_ingest(db, ingest_id, raw)
+                repo.mark_processed(ingest_id)
+                log.info("worker_processed", ingest_id=ingest_id)
         except Exception as e:  # noqa: BLE001
             try:
                 if "ingest_id" in locals():
