@@ -5,7 +5,7 @@ PYTHON:=$(VENV)/bin/python
 
 .PHONY: setup test lint web-build run demo docker-build docker-run
 .PHONY: smoke
-.PHONY: e2e
+.PHONY: e2e perf verify
 
 setup:
 	$(PY) -m venv $(VENV)
@@ -39,6 +39,15 @@ smoke:
 e2e:
 	$(MAKE) web-build
 	cd web && npx playwright test
+
+perf:
+	$(PYTHON) -m autotriage.tools.perf_run
+
+verify:
+	$(MAKE) lint
+	$(MAKE) test
+	$(MAKE) web-build
+	$(MAKE) e2e
 
 docker-build:
 	docker build -t autotriage:latest -f docker/Dockerfile .

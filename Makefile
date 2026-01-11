@@ -1,6 +1,7 @@
 PROJECT_DIR:=autotriage
 
 .PHONY: setup test lint web-build run demo docker-build docker-run
+.PHONY: e2e perf verify
 
 setup:
 	$(MAKE) -C $(PROJECT_DIR) setup
@@ -25,3 +26,12 @@ docker-build:
 
 docker-run:
 	$(MAKE) -C $(PROJECT_DIR) docker-run
+
+e2e:
+	$(MAKE) -C $(PROJECT_DIR) e2e
+
+perf:
+	$(MAKE) -C $(PROJECT_DIR) perf
+
+verify:
+	$(MAKE) -C $(PROJECT_DIR) verify
