@@ -48,3 +48,4 @@ jobs:
       - name: Docker build
         working-directory: autotriage
         run: docker build -t autotriage:ci -f docker/Dockerfile .
+

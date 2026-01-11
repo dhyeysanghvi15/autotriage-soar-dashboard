@@ -8,19 +8,17 @@ __pycache__/
 .env
 .venv/
 
-var/
 *.db
 *.sqlite
-data/sample_alerts/generated.jsonl
-.coverage
-coverage.xml
-htmlcov/
 
 node_modules/
-web/dist/
-web/dist-types/
-autotriage/app/static/
-web/test-results/
-web/playwright-report/
+dist/
+coverage/
+htmlcov/
+.coverage
+coverage.xml
+
+test-results/
+playwright-report/
 
 .DS_Store

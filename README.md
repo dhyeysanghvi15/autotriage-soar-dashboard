@@ -1,6 +1,8 @@
 # AutoTriage — Cybersecurity Automation + SOAR Demo
 
-> **10-second pitch:** AutoTriage runs a deterministic SOAR pipeline (ingest, normalize, fingerprint, dedup, correlate, enrich, score, decide, route, ticket) with append-only event sourcing, Prometheus metrics, replay experiments, and a React dashboard all under one FastAPI URL.
+[![CI](https://github.com/dhyeysanghvi15/autotriage-soar-dashboard/actions/workflows/ci.yml/badge.svg)](https://github.com/dhyeysanghvi15/autotriage-soar-dashboard/actions/workflows/ci.yml)
+
+AutoTriage runs a deterministic SOAR pipeline (ingest → normalize → fingerprint → dedup → correlate → enrich → score → decide → route → ticket/close) with an append-only SQLite event store, replay experiments, Prometheus metrics, and a same-origin React dashboard.
 
 **One URL demo:**
 
@@ -9,9 +11,7 @@
 - Webhook ingest: `/webhook/alerts`
 - Prometheus: `/metrics`
 
-## Quickstart
-
-### Docker
+## Run In 60 Seconds (Docker)
 
 ```bash
 make docker-build
@@ -20,7 +20,7 @@ make docker-run
 
 Open `http://localhost:8080` to see the dashboard served from the same FastAPI process.
 
-### Local development
+## Run Locally
 
 ```bash
 make setup
@@ -32,6 +32,13 @@ In a separate terminal:
 
 ```bash
 python -m autotriage.cli.main ingest-file data/sample_alerts/vendor_a.jsonl
+```
+
+## Verify (Tests)
+
+```bash
+make verify
+make perf
 ```
 
 ## Demo recipe (deterministic)
@@ -117,7 +124,7 @@ flowchart LR
 - `autotriage/autotriage/enrichers`: offline enrichers + cache + rate limit + breaker
 - `autotriage/autotriage/storage`: SQLite migrations + repositories + aggregates
 - `autotriage/web`: React dashboard (Vite)
-- `autotriage/.github/workflows/ci.yml`: CI (lint, tests, web build, Playwright e2e, Docker build)
+- `.github/workflows/ci.yml`: CI (lint, tests, web build, Playwright e2e, Docker build)
 
 ## Known issues
 
