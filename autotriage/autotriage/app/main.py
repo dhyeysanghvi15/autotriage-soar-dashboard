@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
@@ -8,10 +10,21 @@ from fastapi.staticfiles import StaticFiles
 
 from autotriage.app.middleware.request_id import RequestIdMiddleware
 from autotriage.app.routes import cases, config, health, ingest, metrics, overview, replay
+from autotriage.storage.db import init_db
 
 
 def create_app(static_dir: Path | None = None) -> FastAPI:
-    app = FastAPI(title="AutoTriage", docs_url="/api/docs", openapi_url="/api/openapi.json")
+    @asynccontextmanager
+    async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+        init_db()
+        yield
+
+    app = FastAPI(
+        title="AutoTriage",
+        docs_url="/api/docs",
+        openapi_url="/api/openapi.json",
+        lifespan=lifespan,
+    )
 
     app.add_middleware(RequestIdMiddleware)
 
