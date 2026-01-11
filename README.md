@@ -70,22 +70,22 @@ make perf
 ```mermaid
 flowchart LR
   subgraph Ingestion
-    A[Webhook /webhook/alerts] --> B[(SQLite alerts queue)]
+    A[Webhook /webhook/alerts] --> B["SQLite alerts queue"]
   end
   B --> C[Worker: pipeline orchestrator]
-  C --> D[(SQLite event store)]
-  C --> E[(SQLite cases + entities + edges)]
-  C --> F[(SQLite tickets)]
+  C --> D["SQLite event store"]
+  C --> E["SQLite cases - entities - edges"]
+  C --> F["SQLite tickets"]
   subgraph APIs
     G[FastAPI /api/*, /metrics, /healthz]
-    H[Static dashboard (Vite/React)]
+    H["Static dashboard - Vite/React"]
   end
   G --> E
   G --> D
   H -->|same-origin| G
   G --> I[/metrics Prometheus/]
   C --> G
-  G --> J[/playbooks/*.md (limited)]
+  G --> J["/playbooks/*.md - limited"]
 ```
 
 ## What this demonstrates
