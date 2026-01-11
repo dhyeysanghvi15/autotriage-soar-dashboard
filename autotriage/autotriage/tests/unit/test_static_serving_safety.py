@@ -9,7 +9,7 @@ from autotriage.app.main import create_app
 
 def test_playbooks_path_traversal_is_404() -> None:
     client = TestClient(create_app())
-    r = client.get("/playbooks/../pyproject.toml")
+    r = client.get("/playbooks/%2e%2e/pyproject.toml")
     assert r.status_code == 404
     r2 = client.get("/playbooks/templates/action_cards.yml")
     assert r2.status_code == 404

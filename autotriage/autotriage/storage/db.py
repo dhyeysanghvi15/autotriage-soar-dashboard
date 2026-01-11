@@ -51,7 +51,7 @@ def init_db() -> None:
                 else:
                     raise
             db.execute(
-                "INSERT INTO schema_migrations (id, applied_at) VALUES (?, ?)",
+                "INSERT OR IGNORE INTO schema_migrations (id, applied_at) VALUES (?, ?)",
                 (mid, datetime.now(tz=UTC).isoformat()),
             )
             db.commit()

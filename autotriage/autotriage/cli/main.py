@@ -47,7 +47,7 @@ def run(mode: str = "all", host: str = "127.0.0.1", port: int = 8080) -> None:
 
 @app.command()
 def build_web(dist_dir: Path = Path("web/dist")) -> None:
-    target = Path("autotriage/autotriage/app/static")
+    target = Path("autotriage/app/static")
     target.mkdir(parents=True, exist_ok=True)
     if not dist_dir.exists():
         raise typer.BadParameter(f"{dist_dir} does not exist; run npm build first")

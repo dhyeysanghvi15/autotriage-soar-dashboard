@@ -5,6 +5,7 @@ PYTHON:=$(VENV)/bin/python
 
 .PHONY: setup test lint web-build run demo docker-build docker-run
 .PHONY: smoke
+.PHONY: e2e
 
 setup:
 	$(PY) -m venv $(VENV)
@@ -22,9 +23,9 @@ lint:
 
 web-build:
 	cd web && npm run build
-	rm -rf autotriage/autotriage/app/static
-	mkdir -p autotriage/autotriage/app/static
-	cp -R web/dist/* autotriage/autotriage/app/static/
+	rm -rf autotriage/app/static
+	mkdir -p autotriage/app/static
+	cp -R web/dist/* autotriage/app/static/
 
 run:
 	$(PYTHON) -m autotriage.cli.main run --mode all
@@ -34,6 +35,10 @@ demo:
 
 smoke:
 	$(PYTHON) -m autotriage.tools.smoke --base-url http://127.0.0.1:8080
+
+e2e:
+	$(MAKE) web-build
+	cd web && npx playwright test
 
 docker-build:
 	docker build -t autotriage:latest -f docker/Dockerfile .
