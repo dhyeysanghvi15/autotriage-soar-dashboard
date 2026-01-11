@@ -44,11 +44,8 @@ python -m autotriage.cli.main ingest-file data/sample_alerts/vendor_a.jsonl
 
 ## Interface preview
 
-![Overview](docs/screenshots/dashboard-overview.png)
-
-![Cases table](docs/screenshots/cases-table.png)
-
-![Case details](docs/screenshots/case-detail.png)
+- Screenshots live in `docs/screenshots/`.
+- This repo keeps the folder tracked (`docs/screenshots/.gitkeep`), but does not ship screenshots by default.
 
 ## Dashboard tour
 
@@ -100,13 +97,12 @@ flowchart LR
 - Enrichers use SQLite cache + TTL + rate limit + circuit breaker, so repeated runs behave consistently.
 - Replay experiments ingest stored events with new config overrides to compare outcomes.
 
-## Screenshot automation
+## Screenshot automation (optional)
 
-- Run `cd autotriage && npm run capture-screenshots` to launch Playwright, seed the backend, and generate:
-  - `docs/screenshots/dashboard-overview.png`
-  - `docs/screenshots/cases-table.png`
-  - `docs/screenshots/case-detail.png`
-- Playwright captures pages after the data seed, disables animations, and targets the first case for the detail shot.
+- If you want to add screenshots, use Playwright (or your OS capture tool) while running `make demo` and save them into `docs/screenshots/` with these filenames:
+  - `dashboard-overview.png`
+  - `cases-table.png`
+  - `case-detail.png`
 
 ## Known issues
 
