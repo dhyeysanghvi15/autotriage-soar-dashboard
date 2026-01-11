@@ -2,6 +2,13 @@
 
 > **10-second pitch:** AutoTriage runs a deterministic SOAR pipeline (ingest, normalize, fingerprint, dedup, correlate, enrich, score, decide, route, ticket) with append-only event sourcing, Prometheus metrics, replay experiments, and a React dashboard all under one FastAPI URL.
 
+**One URL demo:**
+
+- Dashboard: `/` (static React app served by FastAPI)
+- API: `/api/*`
+- Webhook ingest: `/webhook/alerts`
+- Prometheus: `/metrics`
+
 ## Quickstart
 
 ### Docker
@@ -35,17 +42,13 @@ python -m autotriage.cli.main ingest-file data/sample_alerts/vendor_a.jsonl
 
 ## Testing & performance
 
+- Requirements: Python 3.11+ and Node 20+ (CI uses Node 20).
 - `make lint` (ruff + mypy) and `make test` (pytest).
 - `make web-build` verifies the Vite build and copies `web/dist` into `autotriage/app/static`.
 - `make e2e` runs Playwright UI tests against the seeded backend.
 - `make perf` uses `autotriage.tools.perf_run` to ingest 1,000 alerts, waits for the worker, and measures ingest RPS, exhaustion of dedup/correlation, case/ticket totals, and deadletters. Failures occur when processing is too slow or deadletters accumulate.
 - `make verify` chains lint → test → web-build → e2e.
 - For full coverage mapping, see `TEST_PLAN.md` (scope + matrix) and `TEST_REPORT.md` (commands + results).
-
-## Interface preview
-
-- Screenshots live in `docs/screenshots/`.
-- This repo keeps the folder tracked (`docs/screenshots/.gitkeep`), but does not ship screenshots by default.
 
 ## Dashboard tour
 
@@ -77,6 +80,15 @@ flowchart LR
   G --> J[/playbooks/*.md (limited)]
 ```
 
+## What this demonstrates
+
+- SOAR-like pipeline with stage-level audit trail (SQLite events) and replay experiments.
+- Idempotent webhook ingestion (header key or stable computed key).
+- Deduplication windows + correlation by entity overlap (user/host/ip/domain/rule/technique).
+- Offline, deterministic enrichment (WHOIS, Geo/ASN, IP reputation, allowlist, asset inventory) with cache TTL, rate limiting, and circuit breaker.
+- Explainable scoring + decisioning + routing (contributions and rationale exposed in the UI).
+- Production discipline: tests (unit/integration/e2e), perf sanity harness, CI, Docker, Prometheus metrics.
+
 ## API contract summary
 
 - `GET /healthz` → `{status, version}`.
@@ -97,12 +109,14 @@ flowchart LR
 - Enrichers use SQLite cache + TTL + rate limit + circuit breaker, so repeated runs behave consistently.
 - Replay experiments ingest stored events with new config overrides to compare outcomes.
 
-## Screenshot automation (optional)
+## Repo map
 
-- If you want to add screenshots, use Playwright (or your OS capture tool) while running `make demo` and save them into `docs/screenshots/` with these filenames:
-  - `dashboard-overview.png`
-  - `cases-table.png`
-  - `case-detail.png`
+- `autotriage/autotriage/app`: FastAPI app, routes, static hosting, playbook serving
+- `autotriage/autotriage/core`: normalize/fingerprint/dedup/correlate/enrich/score/route pipeline
+- `autotriage/autotriage/enrichers`: offline enrichers + cache + rate limit + breaker
+- `autotriage/autotriage/storage`: SQLite migrations + repositories + aggregates
+- `autotriage/web`: React dashboard (Vite)
+- `autotriage/.github/workflows/ci.yml`: CI (lint, tests, web build, Playwright e2e, Docker build)
 
 ## Known issues
 
@@ -125,5 +139,5 @@ flowchart LR
 - Deterministic aggregator pipeline (normalization, fingerprinting, dedup windows, entity correlation).
 - Offline enrichers with cache/rate-limit/circuit-breaker guardrails.
 - Explaining decisions (score contributions, routing rationale) and storing events for replay.
-- Vite+React dashboard with Playwright e2e, screenshot automation, and same-origin SPA hosting.
+- Vite+React dashboard with Playwright e2e and same-origin SPA hosting.
 - Ops maturity: linting, type checking, tests (unit/integration/e2e), perf harness, Docker + CI.

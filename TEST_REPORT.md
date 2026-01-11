@@ -34,6 +34,7 @@
 ## Issues found + fixes applied
 
 - `make perf` timed out initially due to worker throttling (`worker_loop` slept every iteration). Fixed `autotriage/autotriage/worker.py` to sleep only when idle; perf harness now completes under defaults.
+- Some aborted Playwright runs can leave the local test server listening on port `18080`, which makes subsequent E2E appear to “hang”. The E2E harness now removes stale state and fails fast if the port is already in use.
 - Docker build logs show `npm audit` moderate vulnerabilities in transitive web dev dependencies (already documented in `autotriage/README.md` and `autotriage/docs/runbook.md`).
 
 ## Sign-off checklist

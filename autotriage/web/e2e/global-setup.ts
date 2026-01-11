@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import * as net from "node:net";
 import { setTimeout as sleep } from "node:timers/promises";
 import { request as pwRequest } from "@playwright/test";
 import { fileURLToPath } from "node:url";
@@ -29,6 +30,36 @@ async function waitReady() {
     await sleep(250);
   }
   throw new Error("backend did not become ready");
+}
+
+function portInUse(host: string, port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect({ host, port });
+    socket.once("connect", () => {
+      socket.end();
+      resolve(true);
+    });
+    socket.once("error", () => resolve(false));
+  });
+}
+
+function tryKillPid(pid: number): void {
+  try {
+    process.kill(pid, "SIGTERM");
+  } catch {
+    // ignore
+  }
+}
+
+function cleanupStaleState(): void {
+  try {
+    const raw = fs.readFileSync(statePath, { encoding: "utf-8" });
+    const state = JSON.parse(raw) as { pid: number };
+    tryKillPid(state.pid);
+    fs.unlinkSync(statePath);
+  } catch {
+    // ignore
+  }
 }
 
 async function ingestSamples() {
@@ -78,6 +109,10 @@ async function waitCases() {
 }
 
 export default async function globalSetup() {
+  cleanupStaleState();
+  if (await portInUse("127.0.0.1", 18080)) {
+    throw new Error("port 18080 already in use (stale server?). Stop it and re-run Playwright.");
+  }
   const dbPath = path.join(os.tmpdir(), `autotriage-e2e-${process.pid}-${Date.now()}.db`);
 
   const child = spawn(

@@ -37,7 +37,7 @@ smoke:
 	$(PYTHON) -m autotriage.tools.smoke --base-url http://127.0.0.1:8080
 
 e2e:
-	$(MAKE) web-build
+	test -f autotriage/app/static/index.html || $(MAKE) web-build
 	cd web && npx playwright test
 
 perf:
