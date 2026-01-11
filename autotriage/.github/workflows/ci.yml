@@ -33,6 +33,18 @@ jobs:
         run: |
           npm ci
           npm run build
+      - name: Install Playwright (chromium)
+        working-directory: autotriage/web
+        run: npx playwright install --with-deps chromium
+      - name: Copy web dist to backend static
+        working-directory: autotriage
+        run: |
+          rm -rf autotriage/app/static
+          mkdir -p autotriage/app/static
+          cp -R web/dist/* autotriage/app/static/
+      - name: E2E (Playwright)
+        working-directory: autotriage/web
+        run: npx playwright test
       - name: Docker build
         working-directory: autotriage
         run: docker build -t autotriage:ci -f docker/Dockerfile .
